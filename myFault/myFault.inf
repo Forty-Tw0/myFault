@@ -1,0 +1,91 @@
+;
+; myFault.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={42424242-4242-4242-4242-424242424242}
+Provider=%ManufacturerName%
+CatalogFile=myFault.cat
+DriverVer=42.42.42.42
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=ClassReg
+
+[ClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+myFault.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%myFault.DeviceDesc%=myFault_Device, Root\myFault
+
+[myFault_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+myFault.sys
+
+;-------------- Service installation
+[myFault_Device.NT.Services]
+AddService = myFault,%SPSVCINST_ASSOCSERVICE%, myFault_Service_Inst
+
+; -------------- myFault driver install sections
+[myFault_Service_Inst]
+DisplayName    = %myFault.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\myFault.sys
+;LoadOrderGroup = Extended Base
+
+;
+;--- myFault_Device Coinstaller installation ------
+;
+
+[DestinationDirs]
+myFault_Device_CoInstaller_CopyFiles = 11
+
+[myFault_Device.NT.CoInstallers]
+AddReg=myFault_Device_CoInstaller_AddReg
+CopyFiles=myFault_Device_CoInstaller_CopyFiles
+
+[myFault_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[myFault_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[SourceDisksFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+[myFault_Device.NT.Wdf]
+KmdfService = myFault, myFault_wdfsect
+[myFault_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="Forty-Two"
+ClassName="myFault"
+DiskName = "myFault Installation Disk"
+myFault.DeviceDesc = "myFaultDevice"
+myFault.SVCDESC = "myFaultService"
